@@ -1,0 +1,370 @@
+---
+title: "Getting Started with tradefeatures"
+author: "TradingVerse Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with tradefeatures}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+## Introduction
+
+Welcome to `tradefeatures`! This package provides comprehensive technical analysis indicators for quantitative trading in R. Whether you're a beginner learning technical analysis or an experienced trader building sophisticated strategies, tradefeatures makes it easy to add indicators to your market data.
+
+## Installation
+
+```{r eval=FALSE}
+# Install from GitHub
+devtools::install_github("tradingverse/tradefeatures")
+
+# Load the package
+library(tradefeatures)
+```
+
+## Quick Example
+
+Here's a complete example showing how to fetch data and add multiple indicators:
+
+```{r eval=FALSE}
+library(tradeio)
+library(tradefeatures)
+library(dplyr)
+
+# Fetch Apple stock data
+aapl <- fetch_prices("AAPL", from = "2024-01-01") |>
+  add_sma(20) |>
+  add_rsi(14) |>
+  add_macd() |>
+  add_bbands(20)
+
+# View enriched data
+head(aapl)
+```
+
+## Core Concepts
+
+### Pipe-Friendly Design
+
+All `tradefeatures` functions work seamlessly with pipes (`|>` or `%>%`):
+
+```{r eval=FALSE}
+enriched_data <- raw_data |>
+  add_sma(20) |>
+  add_ema(50) |>
+  add_rsi(14)
+```
+
+### Automatic Column Management
+
+Indicators are added as new columns to your data:
+
+```{r eval=FALSE}
+# Before
+names(prices)
+# [1] "symbol" "datetime" "open" "high" "low" "close" "volume"
+
+# After adding indicators
+prices <- prices |> add_sma(20) |> add_rsi(14)
+names(prices)
+# [1] "symbol" "datetime" "open" "high" "low" "close" "volume" "sma_20" "rsi"
+```
+
+### Multi-Symbol Support
+
+All indicators automatically handle multiple symbols:
+
+```{r eval=FALSE}
+# Fetch multiple stocks
+stocks <- fetch_prices(c("AAPL", "MSFT", "GOOGL"), from = "2024-01-01")
+
+# Indicators calculated separately for each symbol
+stocks <- stocks |>
+  add_sma(20) |>
+  add_rsi(14)
+```
+
+## Indicator Categories
+
+### 1. Trend Indicators
+
+Trend indicators help identify the direction and strength of price movements.
+
+#### Simple Moving Average (SMA)
+
+```{r eval=FALSE}
+# Add 20-day SMA
+prices |> add_sma(20)
+
+# Multiple SMAs with custom names
+prices |>
+  add_sma(20, name = "sma_short") |>
+  add_sma(50, name = "sma_medium") |>
+  add_sma(200, name = "sma_long")
+```
+
+#### Exponential Moving Average (EMA)
+
+```{r eval=FALSE}
+# Add 12-day EMA
+prices |> add_ema(12)
+
+# EMA is more responsive to recent prices
+prices |>
+  add_ema(12, name = "ema_fast") |>
+  add_ema(26, name = "ema_slow")
+```
+
+#### Volume Weighted Average Price (VWAP)
+
+```{r eval=FALSE}
+# Add VWAP
+prices |> add_vwap()
+```
+
+### 2. Momentum Indicators
+
+Momentum indicators measure the rate of price change.
+
+#### Relative Strength Index (RSI)
+
+```{r eval=FALSE}
+# Add 14-period RSI
+prices |> add_rsi(14)
+
+# Identify overbought/oversold
+prices |>
+  add_rsi(14) |>
+  mutate(
+    oversold = rsi < 30,
+    overbought = rsi > 70
+  )
+```
+
+#### MACD
+
+```{r eval=FALSE}
+# Add MACD with default parameters (12, 26, 9)
+prices |> add_macd()
+
+# Custom parameters
+prices |> add_macd(fast = 8, slow = 21, signal = 5)
+
+# Detect crossovers
+prices |>
+  add_macd() |>
+  mutate(
+    bullish = (macd > macd_signal) & (lag(macd) <= lag(macd_signal))
+  )
+```
+
+#### Stochastic Oscillator
+
+```{r eval=FALSE}
+# Add Stochastic
+prices |> add_stochastic(14, smooth = 3)
+```
+
+### 3. Volatility Indicators
+
+Volatility indicators measure price variability.
+
+#### Bollinger Bands
+
+```{r eval=FALSE}
+# Add Bollinger Bands (20-day, 2 standard deviations)
+prices |> add_bbands(20, sd = 2)
+
+# Identify when price touches bands
+prices |>
+  add_bbands(20) |>
+  mutate(
+    at_lower = close <= bb_lower,
+    at_upper = close >= bb_upper
+  )
+```
+
+#### Average True Range (ATR)
+
+```{r eval=FALSE}
+# Add 14-period ATR
+prices |> add_atr(14)
+
+# Use for position sizing
+prices |>
+  add_atr(14) |>
+  mutate(
+    position_size = 1000 / (2 * atr)  # Risk 2 ATRs
+  )
+```
+
+### 4. Volume Indicators
+
+#### On-Balance Volume (OBV)
+
+```{r eval=FALSE}
+# Add OBV
+prices |> add_obv()
+
+# Look for divergences
+prices |>
+  add_obv() |>
+  mutate(
+    price_up = close > lag(close, 10),
+    obv_up = obv > lag(obv, 10),
+    bullish_divergence = !price_up & obv_up
+  )
+```
+
+## Pattern Detection
+
+Identify chart patterns automatically:
+
+```{r eval=FALSE}
+# Detect moving average crossovers
+prices |>
+  add_sma(50) |>
+  add_sma(200) |>
+  mutate(
+    golden_cross = detect_golden_cross(sma_50, sma_200),
+    death_cross = detect_death_cross(sma_50, sma_200)
+  )
+```
+
+## Complete Example: Multi-Indicator Analysis
+
+Here's a comprehensive example combining multiple indicators:
+
+```{r eval=FALSE}
+library(tradeio)
+library(tradefeatures)
+library(tradeengine)
+library(dplyr)
+
+# Fetch and enrich data
+analysis <- fetch_prices("AAPL", from = "2023-01-01") |>
+  # Trend
+  add_sma(20) |>
+  add_ema(50) |>
+  # Momentum
+  add_rsi(14) |>
+  add_macd() |>
+  # Volatility
+  add_bbands(20) |>
+  add_atr(14) |>
+  # Volume
+  add_obv() |>
+  # Create trading signals
+  mutate(
+    # Trend signal
+    uptrend = close > sma_20 & sma_20 > ema_50,
+    # Momentum signal
+    momentum_up = rsi > 50 & macd > macd_signal,
+    # Not overbought
+    not_overbought = rsi < 70,
+    # Combined signal
+    buy_signal = uptrend & momentum_up & not_overbought
+  )
+
+# Count signals
+sum(analysis$buy_signal, na.rm = TRUE)
+```
+
+## Integration with tradeengine
+
+Use indicators in backtesting strategies:
+
+```{r eval=FALSE}
+# Complete trading strategy
+results <- fetch_prices("AAPL", from = "2023-01-01") |>
+  add_sma(20) |>
+  add_rsi(14) |>
+  add_strategy(
+    entry = (close > sma_20) & (rsi < 30),
+    exit = (close < sma_20) | (rsi > 70)
+  ) |>
+  backtest(initial_capital = 10000)
+
+print(results$summary)
+```
+
+## Best Practices
+
+### 1. Start Simple
+
+Begin with one or two indicators and understand them well:
+
+```{r eval=FALSE}
+# Simple SMA crossover
+prices |>
+  add_sma(20) |>
+  add_sma(50) |>
+  mutate(signal = sma_20 > sma_50)
+```
+
+### 2. Combine Complementary Indicators
+
+Use indicators from different categories:
+
+```{r eval=FALSE}
+# Trend + Momentum + Volatility
+prices |>
+  add_sma(20) |>        # Trend
+  add_rsi(14) |>        # Momentum
+  add_atr(14)           # Volatility
+```
+
+### 3. Validate with Backtesting
+
+Always test indicator combinations:
+
+```{r eval=FALSE}
+results <- prices |>
+  add_rsi(14) |>
+  add_strategy(entry = rsi < 30, exit = rsi > 70) |>
+  backtest(initial_capital = 10000)
+```
+
+### 4. Watch for Overfitting
+
+Too many indicators can lead to overfitting:
+
+```{r eval=FALSE}
+# Good: 3-4 complementary indicators
+prices |> add_sma(20) |> add_rsi(14) |> add_atr(14)
+
+# Risky: Too many similar indicators
+prices |> add_sma(10) |> add_sma(20) |> add_sma(30) |> add_sma(50) |> # ...
+```
+
+## Next Steps
+
+Explore more advanced topics:
+
+- `vignette("case-study-sma-crossover")` - Complete SMA strategy
+- `vignette("case-study-rsi-mean-reversion")` - RSI trading strategy
+- `vignette("case-study-multi-indicator")` - Advanced combinations
+- `vignette("momentum-indicators")` - Deep dive into momentum
+- `vignette("volatility-analysis")` - Understanding volatility
+
+## Summary
+
+`tradefeatures` makes technical analysis in R:
+
+✅ **Easy** - Simple, consistent API  
+✅ **Fast** - Optimized calculations  
+✅ **Flexible** - 30+ indicators  
+✅ **Integrated** - Works with tradeio and tradeengine  
+✅ **Documented** - Comprehensive examples  
+
+Happy trading! 📈

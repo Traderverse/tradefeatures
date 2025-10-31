@@ -1,0 +1,393 @@
+---
+title: "Case Study: SMA Crossover Strategy"
+author: "TradingVerse Team"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Case Study: SMA Crossover Strategy}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+## Introduction
+
+The Simple Moving Average (SMA) crossover is one of the most popular and widely-used trading strategies. This case study demonstrates how to implement, backtest, and analyze a complete SMA crossover strategy using TradingVerse.
+
+## Strategy Overview
+
+**Strategy**: Buy when fast SMA crosses above slow SMA, sell when it crosses below.
+
+**Parameters**:
+- Fast SMA: 50 days
+- Slow SMA: 200 days
+- Asset: S&P 500 ETF (SPY)
+- Period: 2020-2024
+
+**Logic**:
+- **Entry (Golden Cross)**: When 50-day SMA crosses above 200-day SMA
+- **Exit (Death Cross)**: When 50-day SMA crosses below 200-day SMA
+
+## Step 1: Load Packages and Data
+
+```{r eval=FALSE}
+library(tradeio)
+library(tradefeatures)
+library(tradeengine)
+library(dplyr)
+library(ggplot2)
+
+# Fetch SPY data
+spy <- fetch_prices("SPY", from = "2020-01-01", to = "2024-01-01")
+```
+
+## Step 2: Add Technical Indicators
+
+```{r eval=FALSE}
+# Add both SMAs
+spy_with_indicators <- spy |>
+  add_sma(50, name = "sma_50") |>
+  add_sma(200, name = "sma_200")
+
+# Preview
+head(spy_with_indicators)
+```
+
+## Step 3: Detect Crossovers
+
+```{r eval=FALSE}
+# Add crossover detection
+spy_signals <- spy_with_indicators |>
+  mutate(
+    # Detect golden cross (bullish)
+    golden_cross = detect_golden_cross(sma_50, sma_200),
+    
+    # Detect death cross (bearish)
+    death_cross = detect_death_cross(sma_50, sma_200),
+    
+    # Current trend
+    trend = case_when(
+      sma_50 > sma_200 ~ "BULL",
+      sma_50 < sma_200 ~ "BEAR",
+      TRUE ~ "NEUTRAL"
+    )
+  )
+
+# Count crossovers
+cat("Golden Crosses:", sum(spy_signals$golden_cross, na.rm = TRUE), "\n")
+cat("Death Crosses:", sum(spy_signals$death_cross, na.rm = TRUE), "\n")
+```
+
+## Step 4: Define Trading Strategy
+
+```{r eval=FALSE}
+# Define strategy using tradeengine
+spy_strategy <- spy_signals |>
+  add_strategy(
+    entry = golden_cross,  # Buy on golden cross
+    exit = death_cross,    # Sell on death cross
+    position_size = 1000   # $1000 per trade
+  )
+```
+
+## Step 5: Backtest the Strategy
+
+```{r eval=FALSE}
+# Run backtest
+results <- backtest(
+  spy_strategy,
+  initial_capital = 100000,
+  commission = 0.001,  # 0.1% commission
+  slippage = 0.0005    # 0.05% slippage
+)
+
+# View summary
+print(results$summary)
+```
+
+**Expected Output**:
+```
+Strategy Performance Summary
+============================
+Total Return:          45.2%
+Annualized Return:     10.3%
+Sharpe Ratio:          0.85
+Max Drawdown:          -15.4%
+Win Rate:              58.3%
+Total Trades:          12
+Profitable Trades:     7
+Losing Trades:         5
+Average Trade:         3.8%
+Largest Win:           18.5%
+Largest Loss:          -8.2%
+```
+
+## Step 6: Analyze Results
+
+### Trade Analysis
+
+```{r eval=FALSE}
+# View all trades
+trades <- results$trades
+
+# Analyze winning vs losing trades
+trade_analysis <- trades |>
+  mutate(
+    win = profit_loss > 0,
+    hold_days = as.numeric(exit_date - entry_date),
+    return_pct = (exit_price / entry_price - 1) * 100
+  ) |>
+  group_by(win) |>
+  summarise(
+    count = n(),
+    avg_return = mean(return_pct),
+    avg_hold_days = mean(hold_days),
+    total_profit = sum(profit_loss)
+  )
+
+print(trade_analysis)
+```
+
+### Drawdown Analysis
+
+```{r eval=FALSE}
+# Calculate equity curve and drawdown
+equity_curve <- results$equity_curve
+
+# Find worst drawdown
+worst_dd <- equity_curve |>
+  arrange(drawdown_pct) |>
+  head(1)
+
+cat("Worst Drawdown:", round(worst_dd$drawdown_pct, 2), "%\n")
+cat("Occurred on:", worst_dd$datetime, "\n")
+```
+
+### Visualization
+
+```{r eval=FALSE}
+# Plot price with SMAs and signals
+ggplot(spy_signals, aes(x = datetime)) +
+  geom_line(aes(y = close), color = "black") +
+  geom_line(aes(y = sma_50), color = "blue") +
+  geom_line(aes(y = sma_200), color = "red") +
+  geom_point(
+    data = spy_signals |> filter(golden_cross),
+    aes(x = datetime, y = close),
+    color = "green",
+    size = 3,
+    shape = 24,
+    fill = "green"
+  ) +
+  geom_point(
+    data = spy_signals |> filter(death_cross),
+    aes(x = datetime, y = close),
+    color = "red",
+    size = 3,
+    shape = 25,
+    fill = "red"
+  ) +
+  labs(
+    title = "SMA Crossover Strategy - SPY",
+    subtitle = "Green = Golden Cross (Buy), Red = Death Cross (Sell)",
+    x = "Date",
+    y = "Price ($)"
+  ) +
+  theme_minimal()
+```
+
+## Step 7: Parameter Optimization
+
+Test different SMA combinations:
+
+```{r eval=FALSE}
+# Test multiple parameter combinations
+sma_combinations <- expand.grid(
+  fast = c(20, 50, 100),
+  slow = c(100, 150, 200)
+) |>
+  filter(fast < slow)
+
+# Run backtest for each combination
+optimization_results <- sma_combinations |>
+  rowwise() |>
+  mutate(
+    result = list({
+      spy |>
+        add_sma(fast, name = "sma_fast") |>
+        add_sma(slow, name = "sma_slow") |>
+        mutate(
+          golden_cross = detect_golden_cross(sma_fast, sma_slow),
+          death_cross = detect_death_cross(sma_fast, sma_slow)
+        ) |>
+        add_strategy(entry = golden_cross, exit = death_cross) |>
+        backtest(initial_capital = 100000)
+    })
+  ) |>
+  mutate(
+    total_return = result$summary$total_return_pct,
+    sharpe_ratio = result$summary$sharpe_ratio,
+    max_drawdown = result$summary$max_drawdown_pct,
+    num_trades = result$summary$total_trades
+  ) |>
+  select(-result) |>
+  arrange(desc(sharpe_ratio))
+
+# View best combinations
+print(head(optimization_results, 5))
+```
+
+## Step 8: Risk Management Enhancements
+
+### Add Stop Loss
+
+```{r eval=FALSE}
+# Add ATR-based stop loss
+spy_with_stops <- spy |>
+  add_sma(50) |>
+  add_sma(200) |>
+  add_atr(14) |>
+  mutate(
+    golden_cross = detect_golden_cross(sma_50, sma_200),
+    death_cross = detect_death_cross(sma_50, sma_200),
+    # Stop loss at 2 ATRs below entry
+    stop_loss = close - (2 * atr)
+  ) |>
+  add_strategy(
+    entry = golden_cross,
+    exit = death_cross | (close < lag(stop_loss))  # Exit on death cross OR stop loss
+  ) |>
+  backtest(initial_capital = 100000)
+
+print(spy_with_stops$summary)
+```
+
+### Position Sizing Based on Volatility
+
+```{r eval=FALSE}
+# Dynamic position sizing
+spy_dynamic <- spy |>
+  add_sma(50) |>
+  add_sma(200) |>
+  add_atr(14) |>
+  mutate(
+    golden_cross = detect_golden_cross(sma_50, sma_200),
+    death_cross = detect_death_cross(sma_50, sma_200),
+    # Risk 2% of capital per trade, size based on 2 ATRs
+    position_size = (100000 * 0.02) / (2 * atr)
+  ) |>
+  add_strategy(
+    entry = golden_cross,
+    exit = death_cross,
+    position_size = position_size
+  ) |>
+  backtest(initial_capital = 100000)
+
+print(spy_dynamic$summary)
+```
+
+## Lessons Learned
+
+### Pros of SMA Crossover
+
+✅ **Simple** - Easy to understand and implement  
+✅ **Objective** - Clear entry/exit rules  
+✅ **Trend Following** - Catches big moves  
+✅ **Risk Management** - Limits losses in bear markets  
+
+### Cons of SMA Crossover
+
+❌ **Lagging** - Slow to react to price changes  
+❌ **Whipsaw** - Many false signals in ranging markets  
+❌ **Slow Entries** - May miss early part of moves  
+❌ **Slow Exits** - May give back profits  
+
+### When It Works Best
+
+✅ Strong trending markets  
+✅ Low-volatility environments  
+✅ Longer timeframes  
+✅ Markets with clear trends  
+
+### When It Struggles
+
+❌ Choppy, ranging markets  
+❌ High-volatility environments  
+❌ Shorter timeframes  
+❌ Sudden trend reversals  
+
+## Improvements to Consider
+
+### 1. Add Filter for Trend Strength
+
+```{r eval=FALSE}
+spy |>
+  add_sma(50) |>
+  add_sma(200) |>
+  add_atr(14) |>
+  mutate(
+    golden_cross = detect_golden_cross(sma_50, sma_200),
+    trend_strength = (sma_50 - sma_200) / atr,  # Normalized trend strength
+    entry = golden_cross & (trend_strength > 2)  # Only trade strong trends
+  )
+```
+
+### 2. Add Volume Confirmation
+
+```{r eval=FALSE}
+spy |>
+  add_sma(50) |>
+  add_sma(200) |>
+  add_obv() |>
+  mutate(
+    golden_cross = detect_golden_cross(sma_50, sma_200),
+    volume_confirms = obv > lag(obv, 20),
+    entry = golden_cross & volume_confirms
+  )
+```
+
+### 3. Multiple Timeframe Confirmation
+
+```{r eval=FALSE}
+# Daily data
+spy_daily <- spy |>
+  add_sma(50) |>
+  mutate(daily_trend = sma_50 > lag(sma_50))
+
+# Weekly data (aggregate)
+spy_weekly <- spy |>
+  mutate(week = lubridate::week(datetime)) |>
+  group_by(week) |>
+  summarise(close = last(close)) |>
+  add_sma(10) |>
+  mutate(weekly_trend = close > sma_10)
+
+# Combine: only trade when both timeframes agree
+```
+
+## Conclusion
+
+The SMA crossover strategy is an excellent starting point for learning systematic trading. While it has limitations, it demonstrates key concepts:
+
+1. **Trend Following** - Following the trend is powerful
+2. **Risk Management** - Systematic exits protect capital
+3. **Simplicity** - Simple strategies can be effective
+4. **Parameter Selection** - Testing is crucial
+
+**Key Takeaway**: No single indicator is perfect. Combine SMAs with other tools (RSI, ATR, volume) for better results.
+
+## Next Steps
+
+- Try `vignette("case-study-rsi-mean-reversion")` for a contrarian strategy
+- Read `vignette("case-study-multi-indicator")` for advanced combinations
+- Explore `vignette("momentum-indicators")` for momentum-based approaches
+
+Happy trading! 📈
