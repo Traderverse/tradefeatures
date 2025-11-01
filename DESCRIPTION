@@ -27,5 +27,10 @@ Suggests:
     ggplot2
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+Remotes:
+    Traderverse/tradeengine,
+    Traderverse/tradeio,
+    Traderverse/tradeviz,
+    Traderverse/trademetrics
 URL: https://github.com/tradingverse/tradefeatures
 BugReports: https://github.com/tradingverse/tradefeatures/issues
