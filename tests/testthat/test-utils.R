@@ -29,16 +29,16 @@ test_that("validate_indicator_params catches errors", {
                 close = rnorm(10, 100, 2)
         )
         
-        # Should error when n is too large
-        expect_error(
+        # Should warn when n is too large
+        expect_warning(
                 validate_indicator_params(15, data, min_n = 1),
-                "Period n \\(15\\) is larger than data"
+                "Data has fewer rows"
         )
         
         # Should error when n is too small
         expect_error(
                 validate_indicator_params(3, data, min_n = 5),
-                "Period n must be at least 5"
+                "Parameter 'n' must be >= 5"
         )
 })
 

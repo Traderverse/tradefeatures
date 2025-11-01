@@ -23,6 +23,8 @@ prices <- c(100, 102, 101, 103, 105, 104, 106)
 ema(prices, n = 3)
 
 # Use in dplyr
+\dontrun{
 library(dplyr)
-data |> mutate(ema_12 = ema(close, 12))
+prices_df |> mutate(ema_12 = ema(close, 12))
+}
 }

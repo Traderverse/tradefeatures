@@ -23,6 +23,8 @@ prices <- c(100, 102, 101, 103, 105, 104, 106)
 sma(prices, n = 3)
 
 # Use in dplyr
+\dontrun{
 library(dplyr)
-data |> mutate(sma_20 = sma(close, 20))
+prices_df |> mutate(sma_20 = sma(close, 20))
+}
 }

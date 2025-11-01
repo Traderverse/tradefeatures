@@ -14,8 +14,10 @@
 #' sma(prices, n = 3)
 #'
 #' # Use in dplyr
+#' \dontrun{
 #' library(dplyr)
-#' data |> mutate(sma_20 = sma(close, 20))
+#' prices_df |> mutate(sma_20 = sma(close, 20))
+#' }
 sma <- function(x, n = 20) {
         if (length(x) == 0) return(numeric(0))
         if (n < 1) stop("n must be >= 1")
@@ -54,8 +56,10 @@ sma <- function(x, n = 20) {
 #' ema(prices, n = 3)
 #'
 #' # Use in dplyr
+#' \dontrun{
 #' library(dplyr)
-#' data |> mutate(ema_12 = ema(close, 12))
+#' prices_df |> mutate(ema_12 = ema(close, 12))
+#' }
 ema <- function(x, n = 20) {
         if (length(x) == 0) return(numeric(0))
         if (n < 1) stop("n must be >= 1")

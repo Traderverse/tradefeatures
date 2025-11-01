@@ -72,6 +72,7 @@ add_bbands <- function(data, n = 20, sd = 2, price = "close") {
 #'
 #' @return Data with new ATR column
 #' @export
+#' @importFrom rlang .data :=
 #'
 #' @examples
 #' \dontrun{
@@ -100,28 +101,28 @@ add_atr <- function(data, n = 14, name = "atr") {
         # Calculate ATR grouped by symbol if present
         if ("symbol" %in% names(data)) {
                 data <- data |>
-                        dplyr::group_by(symbol) |>
+                        dplyr::group_by(.data$symbol) |>
                         dplyr::mutate(
-                                prev_close = dplyr::lag(close),
-                                tr1 = high - low,
-                                tr2 = abs(high - prev_close),
-                                tr3 = abs(low - prev_close),
-                                true_range = pmax(tr1, tr2, tr3, na.rm = TRUE),
-                                !!name := ema(true_range, n)
+                                prev_close = dplyr::lag(.data$close),
+                                tr1 = .data$high - .data$low,
+                                tr2 = abs(.data$high - .data$prev_close),
+                                tr3 = abs(.data$low - .data$prev_close),
+                                true_range = pmax(.data$tr1, .data$tr2, .data$tr3, na.rm = TRUE),
+                                !!name := ema(.data$true_range, n)
                         ) |>
-                        dplyr::select(-prev_close, -tr1, -tr2, -tr3, -true_range) |>
+                        dplyr::select(-.data$prev_close, -.data$tr1, -.data$tr2, -.data$tr3, -.data$true_range) |>
                         dplyr::ungroup()
         } else {
                 data <- data |>
                         dplyr::mutate(
-                                prev_close = dplyr::lag(close),
-                                tr1 = high - low,
-                                tr2 = abs(high - prev_close),
-                                tr3 = abs(low - prev_close),
-                                true_range = pmax(tr1, tr2, tr3, na.rm = TRUE),
-                                !!name := ema(true_range, n)
+                                prev_close = dplyr::lag(.data$close),
+                                tr1 = .data$high - .data$low,
+                                tr2 = abs(.data$high - .data$prev_close),
+                                tr3 = abs(.data$low - .data$prev_close),
+                                true_range = pmax(.data$tr1, .data$tr2, .data$tr3, na.rm = TRUE),
+                                !!name := ema(.data$true_range, n)
                         ) |>
-                        dplyr::select(-prev_close, -tr1, -tr2, -tr3, -true_range)
+                        dplyr::select(-.data$prev_close, -.data$tr1, -.data$tr2, -.data$tr3, -.data$true_range)
         }
         
         return(data)

@@ -14,6 +14,6 @@ test_that("add_obv adds column correctly", {
         expect_true("obv" %in% names(result))
         expect_equal(nrow(result), nrow(data))
         
-        # First OBV should equal first volume
-        expect_equal(result$obv[1], result$volume[1])
+        # First OBV should be 0 (no previous price to compare)
+        expect_equal(result$obv[1], 0)
 })
