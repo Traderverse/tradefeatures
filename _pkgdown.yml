@@ -41,55 +41,8 @@ navbar:
       href: https://github.com/Traderverse/tradefeatures
 
 reference:
-- title: "Trend Indicators"
-  desc: "Moving averages and trend-following indicators"
-  contents:
-  - add_sma
-  - add_ema
-  - add_wma
-  - add_vwap
-  - add_dema
-  - add_tema
-  
-- title: "Momentum Indicators"
-  desc: "Momentum and oscillator indicators"
-  contents:
-  - add_rsi
-  - add_macd
-  - add_stochastic
-  - add_cci
-  - add_williams_r
-  - add_roc
-  - add_momentum
-  
-- title: "Volatility Indicators"
-  desc: "Volatility and range indicators"
-  contents:
-  - add_bbands
-  - add_atr
-  - add_keltner
-  - add_donchian
-  
-- title: "Volume Indicators"
-  desc: "Volume-based indicators"
-  contents:
-  - add_obv
-  - add_vwap
-  
-- title: "Pattern Detection"
-  desc: "Detect common chart patterns and signals"
-  contents:
-  - detect_golden_cross
-  - detect_death_cross
-  - detect_divergence
-  
-- title: "Utilities"
-  desc: "Helper functions for calculations"
-  contents:
-  - calc_returns
-  - calc_log_returns
-  - calc_momentum
-  - calc_volatility
+- title: "All Functions"
+  desc: "Technical indicators and feature engineering tools"
 
 articles:
 - title: All vignettes
