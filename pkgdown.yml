@@ -1,0 +1,11 @@
+pandoc: 3.1.11
+pkgdown: 2.1.3
+pkgdown_sha: ~
+articles:
+  case-study-rsi-mean-reversion: case-study-rsi-mean-reversion.html
+  case-study-sma-crossover: case-study-sma-crossover.html
+  getting-started: getting-started.html
+last_built: 2025-11-01T12:42Z
+urls:
+  reference: https://traderverse.github.io/tradefeatures/reference
+  article: https://traderverse.github.io/tradefeatures/articles
