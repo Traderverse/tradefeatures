@@ -43,7 +43,7 @@ navbar:
 reference:
 - title: "Trend Indicators"
   desc: "Moving averages and trend-following indicators"
-- contents:
+  contents:
   - add_sma
   - add_ema
   - add_wma
@@ -53,7 +53,7 @@ reference:
   
 - title: "Momentum Indicators"
   desc: "Momentum and oscillator indicators"
-- contents:
+  contents:
   - add_rsi
   - add_macd
   - add_stochastic
@@ -64,7 +64,7 @@ reference:
   
 - title: "Volatility Indicators"
   desc: "Volatility and range indicators"
-- contents:
+  contents:
   - add_bbands
   - add_atr
   - add_keltner
@@ -72,20 +72,20 @@ reference:
   
 - title: "Volume Indicators"
   desc: "Volume-based indicators"
-- contents:
+  contents:
   - add_obv
   - add_vwap
   
 - title: "Pattern Detection"
   desc: "Detect common chart patterns and signals"
-- contents:
+  contents:
   - detect_golden_cross
   - detect_death_cross
   - detect_divergence
   
 - title: "Utilities"
   desc: "Helper functions for calculations"
-- contents:
+  contents:
   - calc_returns
   - calc_log_returns
   - calc_momentum
