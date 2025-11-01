@@ -93,7 +93,7 @@ ema <- function(x, n = 20) {
 #' @param data A data frame or market_tbl with price data
 #' @param n Integer: number of periods for moving average (default: 20)
 #' @param price Character: column name to use for calculation (default: "close")
-#' @param name Character: name for new column (default: "sma_{n}")
+#' @param name Character: name for new column (default: "sma_\{n\}")
 #'
 #' @return Data with new SMA column added
 #' @export
@@ -144,7 +144,7 @@ add_sma <- function(data, n = 20, price = "close", name = NULL) {
 #' @param data A data frame or market_tbl with price data
 #' @param n Integer: number of periods for EMA (default: 20)
 #' @param price Character: column name to use for calculation (default: "close")
-#' @param name Character: name for new column (default: "ema_{n}")
+#' @param name Character: name for new column (default: "ema_\{n\}")
 #'
 #' @return Data with new EMA column added
 #' @export
@@ -217,22 +217,22 @@ add_vwap <- function(data, name = "vwap") {
         # Calculate typical price
         data <- data |>
                 dplyr::mutate(
-                        typical_price = (high + low + close) / 3,
-                        pv = typical_price * volume
+                        typical_price = (.data$high + .data$low + .data$close) / 3,
+                        pv = .data$typical_price * .data$volume
                 )
         
         # Calculate VWAP grouped by symbol if present
         if ("symbol" %in% names(data)) {
                 data <- data |>
-                        dplyr::group_by(symbol) |>
+                        dplyr::group_by(.data$symbol) |>
                         dplyr::mutate(
-                                !!name := cumsum(pv) / cumsum(volume)
+                                !!name := cumsum(.data$pv) / cumsum(.data$volume)
                         ) |>
                         dplyr::ungroup()
         } else {
                 data <- data |>
                         dplyr::mutate(
-                                !!name := cumsum(pv) / cumsum(volume)
+                                !!name := cumsum(.data$pv) / cumsum(.data$volume)
                         )
         }
         

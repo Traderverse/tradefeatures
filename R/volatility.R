@@ -37,24 +37,24 @@ add_bbands <- function(data, n = 20, sd = 2, price = "close") {
         # Calculate Bollinger Bands grouped by symbol if present
         if ("symbol" %in% names(data)) {
                 data <- data |>
-                        dplyr::group_by(symbol) |>
+                        dplyr::group_by(.data$symbol) |>
                         dplyr::mutate(
                                 bb_middle = sma(.data[[price]], n),
                                 rolling_sd = zoo::rollapply(.data[[price]], width = n, FUN = sd, fill = NA, align = "right"),
-                                bb_upper = bb_middle + (sd * rolling_sd),
-                                bb_lower = bb_middle - (sd * rolling_sd)
+                                bb_upper = .data$bb_middle + (sd * .data$rolling_sd),
+                                bb_lower = .data$bb_middle - (sd * .data$rolling_sd)
                         ) |>
-                        dplyr::select(-rolling_sd) |>
+                        dplyr::select(-.data$rolling_sd) |>
                         dplyr::ungroup()
         } else {
                 data <- data |>
                         dplyr::mutate(
                                 bb_middle = sma(.data[[price]], n),
                                 rolling_sd = zoo::rollapply(.data[[price]], width = n, FUN = sd, fill = NA, align = "right"),
-                                bb_upper = bb_middle + (sd * rolling_sd),
-                                bb_lower = bb_middle - (sd * rolling_sd)
+                                bb_upper = .data$bb_middle + (sd * .data$rolling_sd),
+                                bb_lower = .data$bb_middle - (sd * .data$rolling_sd)
                         ) |>
-                        dplyr::select(-rolling_sd)
+                        dplyr::select(-.data$rolling_sd)
         }
         
         return(data)

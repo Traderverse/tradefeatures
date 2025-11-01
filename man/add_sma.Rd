@@ -13,7 +13,7 @@ add_sma(data, n = 20, price = "close", name = NULL)
 
 \item{price}{Character: column name to use for calculation (default: "close")}
 
-\item{name}{Character: name for new column (default: "sma_{n}")}
+\item{name}{Character: name for new column (default: "sma_\{n\}")}
 }
 \value{
 Data with new SMA column added

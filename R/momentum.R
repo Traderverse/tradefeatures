@@ -113,26 +113,26 @@ add_macd <- function(data, fast = 12, slow = 26, signal = 9, price = "close") {
         # Calculate MACD grouped by symbol if present
         if ("symbol" %in% names(data)) {
                 data <- data |>
-                        dplyr::group_by(symbol) |>
+                        dplyr::group_by(.data$symbol) |>
                         dplyr::mutate(
                                 ema_fast = ema(.data[[price]], fast),
                                 ema_slow = ema(.data[[price]], slow),
-                                macd = ema_fast - ema_slow,
-                                macd_signal = ema(macd, signal),
-                                macd_histogram = macd - macd_signal
+                                macd = .data$ema_fast - .data$ema_slow,
+                                macd_signal = ema(.data$macd, signal),
+                                macd_histogram = .data$macd - .data$macd_signal
                         ) |>
-                        dplyr::select(-ema_fast, -ema_slow) |>
+                        dplyr::select(-.data$ema_fast, -.data$ema_slow) |>
                         dplyr::ungroup()
         } else {
                 data <- data |>
                         dplyr::mutate(
                                 ema_fast = ema(.data[[price]], fast),
                                 ema_slow = ema(.data[[price]], slow),
-                                macd = ema_fast - ema_slow,
-                                macd_signal = ema(macd, signal),
-                                macd_histogram = macd - macd_signal
+                                macd = .data$ema_fast - .data$ema_slow,
+                                macd_signal = ema(.data$macd, signal),
+                                macd_histogram = .data$macd - .data$macd_signal
                         ) |>
-                        dplyr::select(-ema_fast, -ema_slow)
+                        dplyr::select(-.data$ema_fast, -.data$ema_slow)
         }
         
         return(data)
@@ -179,24 +179,24 @@ add_stochastic <- function(data, n = 14, smooth = 3) {
         # Calculate Stochastic grouped by symbol if present
         if ("symbol" %in% names(data)) {
                 data <- data |>
-                        dplyr::group_by(symbol) |>
+                        dplyr::group_by(.data$symbol) |>
                         dplyr::mutate(
-                                lowest_low = zoo::rollapply(low, width = n, FUN = min, fill = NA, align = "right"),
-                                highest_high = zoo::rollapply(high, width = n, FUN = max, fill = NA, align = "right"),
-                                stoch_k = 100 * (close - lowest_low) / (highest_high - lowest_low),
-                                stoch_d = sma(stoch_k, smooth)
+                                lowest_low = zoo::rollapply(.data$low, width = n, FUN = min, fill = NA, align = "right"),
+                                highest_high = zoo::rollapply(.data$high, width = n, FUN = max, fill = NA, align = "right"),
+                                stoch_k = 100 * (.data$close - .data$lowest_low) / (.data$highest_high - .data$lowest_low),
+                                stoch_d = sma(.data$stoch_k, smooth)
                         ) |>
-                        dplyr::select(-lowest_low, -highest_high) |>
+                        dplyr::select(-.data$lowest_low, -.data$highest_high) |>
                         dplyr::ungroup()
         } else {
                 data <- data |>
                         dplyr::mutate(
-                                lowest_low = zoo::rollapply(low, width = n, FUN = min, fill = NA, align = "right"),
-                                highest_high = zoo::rollapply(high, width = n, FUN = max, fill = NA, align = "right"),
-                                stoch_k = 100 * (close - lowest_low) / (highest_high - lowest_low),
-                                stoch_d = sma(stoch_k, smooth)
+                                lowest_low = zoo::rollapply(.data$low, width = n, FUN = min, fill = NA, align = "right"),
+                                highest_high = zoo::rollapply(.data$high, width = n, FUN = max, fill = NA, align = "right"),
+                                stoch_k = 100 * (.data$close - .data$lowest_low) / (.data$highest_high - .data$lowest_low),
+                                stoch_d = sma(.data$stoch_k, smooth)
                         ) |>
-                        dplyr::select(-lowest_low, -highest_high)
+                        dplyr::select(-.data$lowest_low, -.data$highest_high)
         }
         
         return(data)
@@ -237,36 +237,36 @@ add_cci <- function(data, n = 20, name = "cci") {
         # Calculate CCI grouped by symbol if present
         if ("symbol" %in% names(data)) {
                 data <- data |>
-                        dplyr::group_by(symbol) |>
+                        dplyr::group_by(.data$symbol) |>
                         dplyr::mutate(
-                                typical_price = (high + low + close) / 3,
-                                sma_tp = sma(typical_price, n),
+                                typical_price = (.data$high + .data$low + .data$close) / 3,
+                                sma_tp = sma(.data$typical_price, n),
                                 mean_deviation = zoo::rollapply(
-                                        typical_price,
+                                        .data$typical_price,
                                         width = n,
                                         FUN = function(x) mean(abs(x - mean(x))),
                                         fill = NA,
                                         align = "right"
                                 ),
-                                !!name := (typical_price - sma_tp) / (constant * mean_deviation)
+                                !!name := (.data$typical_price - .data$sma_tp) / (constant * .data$mean_deviation)
                         ) |>
-                        dplyr::select(-typical_price, -sma_tp, -mean_deviation) |>
+                        dplyr::select(-.data$typical_price, -.data$sma_tp, -.data$mean_deviation) |>
                         dplyr::ungroup()
         } else {
                 data <- data |>
                         dplyr::mutate(
-                                typical_price = (high + low + close) / 3,
-                                sma_tp = sma(typical_price, n),
+                                typical_price = (.data$high + .data$low + .data$close) / 3,
+                                sma_tp = sma(.data$typical_price, n),
                                 mean_deviation = zoo::rollapply(
-                                        typical_price,
+                                        .data$typical_price,
                                         width = n,
                                         FUN = function(x) mean(abs(x - mean(x))),
                                         fill = NA,
                                         align = "right"
                                 ),
-                                !!name := (typical_price - sma_tp) / (constant * mean_deviation)
+                                !!name := (.data$typical_price - .data$sma_tp) / (constant * .data$mean_deviation)
                         ) |>
-                        dplyr::select(-typical_price, -sma_tp, -mean_deviation)
+                        dplyr::select(-.data$typical_price, -.data$sma_tp, -.data$mean_deviation)
         }
         
         return(data)
@@ -304,22 +304,22 @@ add_williams_r <- function(data, n = 14, name = "williams_r") {
         # Calculate Williams %R grouped by symbol if present
         if ("symbol" %in% names(data)) {
                 data <- data |>
-                        dplyr::group_by(symbol) |>
+                        dplyr::group_by(.data$symbol) |>
                         dplyr::mutate(
-                                highest_high = zoo::rollapply(high, width = n, FUN = max, fill = NA, align = "right"),
-                                lowest_low = zoo::rollapply(low, width = n, FUN = min, fill = NA, align = "right"),
-                                !!name := -100 * (highest_high - close) / (highest_high - lowest_low)
+                                highest_high = zoo::rollapply(.data$high, width = n, FUN = max, fill = NA, align = "right"),
+                                lowest_low = zoo::rollapply(.data$low, width = n, FUN = min, fill = NA, align = "right"),
+                                !!name := -100 * (.data$highest_high - .data$close) / (.data$highest_high - .data$lowest_low)
                         ) |>
-                        dplyr::select(-highest_high, -lowest_low) |>
+                        dplyr::select(-.data$highest_high, -.data$lowest_low) |>
                         dplyr::ungroup()
         } else {
                 data <- data |>
                         dplyr::mutate(
-                                highest_high = zoo::rollapply(high, width = n, FUN = max, fill = NA, align = "right"),
-                                lowest_low = zoo::rollapply(low, width = n, FUN = min, fill = NA, align = "right"),
-                                !!name := -100 * (highest_high - close) / (highest_high - lowest_low)
+                                highest_high = zoo::rollapply(.data$high, width = n, FUN = max, fill = NA, align = "right"),
+                                lowest_low = zoo::rollapply(.data$low, width = n, FUN = min, fill = NA, align = "right"),
+                                !!name := -100 * (.data$highest_high - .data$close) / (.data$highest_high - .data$lowest_low)
                         ) |>
-                        dplyr::select(-highest_high, -lowest_low)
+                        dplyr::select(-.data$highest_high, -.data$lowest_low)
         }
         
         return(data)

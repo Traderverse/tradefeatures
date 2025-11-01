@@ -41,30 +41,30 @@ add_obv <- function(data, name = "obv") {
         # Calculate OBV grouped by symbol if present
         if ("symbol" %in% names(data)) {
                 data <- data |>
-                        dplyr::group_by(symbol) |>
+                        dplyr::group_by(.data$symbol) |>
                         dplyr::mutate(
-                                price_change = close - dplyr::lag(close),
+                                price_change = .data$close - dplyr::lag(.data$close),
                                 volume_direction = dplyr::case_when(
-                                        price_change > 0 ~ volume,
-                                        price_change < 0 ~ -volume,
+                                        .data$price_change > 0 ~ .data$volume,
+                                        .data$price_change < 0 ~ -.data$volume,
                                         TRUE ~ 0
                                 ),
-                                !!name := cumsum(tidyr::replace_na(volume_direction, 0))
+                                !!name := cumsum(tidyr::replace_na(.data$volume_direction, 0))
                         ) |>
-                        dplyr::select(-price_change, -volume_direction) |>
+                        dplyr::select(-.data$price_change, -.data$volume_direction) |>
                         dplyr::ungroup()
         } else {
                 data <- data |>
                         dplyr::mutate(
-                                price_change = close - dplyr::lag(close),
+                                price_change = .data$close - dplyr::lag(.data$close),
                                 volume_direction = dplyr::case_when(
-                                        price_change > 0 ~ volume,
-                                        price_change < 0 ~ -volume,
+                                        .data$price_change > 0 ~ .data$volume,
+                                        .data$price_change < 0 ~ -.data$volume,
                                         TRUE ~ 0
                                 ),
-                                !!name := cumsum(tidyr::replace_na(volume_direction, 0))
+                                !!name := cumsum(tidyr::replace_na(.data$volume_direction, 0))
                         ) |>
-                        dplyr::select(-price_change, -volume_direction)
+                        dplyr::select(-.data$price_change, -.data$volume_direction)
         }
         
         return(data)
