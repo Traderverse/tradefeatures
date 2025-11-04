@@ -57,6 +57,7 @@ add_bbands <- function(data, n = 20, sd = 2, price = "close") {
                         dplyr::select(-.data$rolling_sd)
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 
@@ -125,5 +126,6 @@ add_atr <- function(data, n = 14, name = "atr") {
                         dplyr::select(-.data$prev_close, -.data$tr1, -.data$tr2, -.data$tr3, -.data$true_range)
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }

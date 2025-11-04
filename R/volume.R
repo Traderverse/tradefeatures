@@ -67,5 +67,6 @@ add_obv <- function(data, name = "obv") {
                         dplyr::select(-.data$price_change, -.data$volume_direction)
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }

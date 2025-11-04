@@ -133,6 +133,7 @@ add_sma <- function(data, n = 20, price = "close", name = NULL) {
                         dplyr::mutate(!!name := sma(.data[[price]], n))
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 
@@ -183,6 +184,7 @@ add_ema <- function(data, n = 20, price = "close", name = NULL) {
                         dplyr::mutate(!!name := ema(.data[[price]], n))
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 
@@ -240,6 +242,7 @@ add_vwap <- function(data, name = "vwap") {
         data <- data |>
                 dplyr::select(-typical_price, -pv)
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 

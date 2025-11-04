@@ -45,6 +45,7 @@ add_rsi <- function(data, n = 14, price = "close", name = "rsi") {
                         dplyr::mutate(!!name := calc_rsi(.data[[price]], n))
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 
@@ -135,6 +136,7 @@ add_macd <- function(data, fast = 12, slow = 26, signal = 9, price = "close") {
                         dplyr::select(-.data$ema_fast, -.data$ema_slow)
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 
@@ -199,6 +201,7 @@ add_stochastic <- function(data, n = 14, smooth = 3) {
                         dplyr::select(-.data$lowest_low, -.data$highest_high)
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 
@@ -269,6 +272,7 @@ add_cci <- function(data, n = 20, name = "cci") {
                         dplyr::select(-.data$typical_price, -.data$sma_tp, -.data$mean_deviation)
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 
@@ -322,6 +326,7 @@ add_williams_r <- function(data, n = 14, name = "williams_r") {
                         dplyr::select(-.data$highest_high, -.data$lowest_low)
         }
         
+        data <- preserve_market_tbl(data)
         return(data)
 }
 

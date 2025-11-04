@@ -73,3 +73,20 @@ check_required_columns <- function(data, required) {
                 stop("Missing required columns: ", paste(missing, collapse = ", "))
         }
 }
+
+
+#' Preserve Market Table Class
+#'
+#' Helper function to ensure market_tbl class is preserved after operations.
+#' Use this at the end of any function that uses dplyr operations on market_tbl objects.
+#'
+#' @param data Data frame that should be a market_tbl
+#'
+#' @return Data frame with market_tbl class
+#' @export
+preserve_market_tbl <- function(data) {
+        if (!"market_tbl" %in% class(data)) {
+                class(data) <- c("market_tbl", class(data))
+        }
+        return(data)
+}
